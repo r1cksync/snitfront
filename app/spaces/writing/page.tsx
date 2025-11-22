@@ -7,6 +7,7 @@ import { useFlowStore } from '@/lib/store';
 import { useFlowMonitoring } from '@/hooks/useFlowMonitoring';
 import FlowIndicator from '@/components/FlowIndicator';
 import InterventionOverlay from '@/components/InterventionOverlay';
+import AttentionTracker from '@/components/AttentionTracker';
 import { Play, PenTool, FileText, Sparkles, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -97,6 +98,7 @@ export default function WritingSpace() {
     <div className="min-h-screen bg-gray-50">
       <FlowIndicator />
       <InterventionOverlay />
+      <AttentionTracker isActive={isInFlow} />
 
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">

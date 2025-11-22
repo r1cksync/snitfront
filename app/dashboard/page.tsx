@@ -8,6 +8,7 @@ import { useFlowMonitoring } from '@/hooks/useFlowMonitoring';
 import { useNotificationBlocker, useDistractionBlocker } from '@/hooks/useFlowProtection';
 import FlowIndicator from '@/components/FlowIndicator';
 import InterventionOverlay from '@/components/InterventionOverlay';
+import AttentionTracker from '@/components/AttentionTracker';
 import { Play, Pause, TrendingUp, Settings as SettingsIcon, LogOut } from 'lucide-react';
 import { sessionsAPI } from '@/lib/api';
 import Link from 'next/link';
@@ -68,6 +69,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <FlowIndicator />
       <InterventionOverlay />
+      <AttentionTracker isActive={isInFlow} />
 
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-sm">
@@ -151,6 +153,13 @@ export default function Dashboard() {
                   <div className="text-4xl mb-3">🎨</div>
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Whiteboard</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Brainstorm and visualize</p>
+                </div>
+              </Link>
+              <Link href="/spaces/music">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">🎵</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Music Intelligence</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">AI-powered focus music</p>
                 </div>
               </Link>
               <Link href="/analytics">

@@ -7,6 +7,7 @@ import { useFlowStore } from '@/lib/store';
 import { useFlowMonitoring } from '@/hooks/useFlowMonitoring';
 import FlowIndicator from '@/components/FlowIndicator';
 import InterventionOverlay from '@/components/InterventionOverlay';
+import AttentionTracker from '@/components/AttentionTracker';
 import { Play, BookOpen, Eye, Clock, MessageSquare } from 'lucide-react';
 
 export default function ReadingSpace() {
@@ -106,6 +107,7 @@ The ability to perform deep work is becoming increasingly valuable in our econom
     <div className="min-h-screen bg-gray-50">
       <FlowIndicator />
       <InterventionOverlay />
+      <AttentionTracker isActive={isInFlow} />
 
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">

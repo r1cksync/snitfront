@@ -31,16 +31,7 @@ export default function FlowIndicator() {
   const level = getFlowLevel(displayScore);
 
   if (!isInFlow) {
-    return (
-      <div className="fixed top-4 right-4 bg-gray-200 dark:bg-gray-700 rounded-full px-4 py-2 shadow-lg">
-        <div className="flex items-center gap-2">
-          <Square className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Not in flow
-          </span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

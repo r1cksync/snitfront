@@ -36,6 +36,13 @@ apiClient.interceptors.response.use(
 export const authAPI = {
   register: (data: { email: string; password: string; name: string }) =>
     apiClient.post('/api/auth/register', data),
+  
+  // Profile routes go through frontend proxy to use NextAuth session
+  getUserProfile: () =>
+    axios.get('/api/auth/profile'),
+  
+  updateUserProfile: (data: any) =>
+    axios.patch('/api/auth/profile', data),
 };
 
 // Sessions API
@@ -114,4 +121,43 @@ export const mlAPI = {
 export const executeAPI = {
   run: (language: string, code: string, stdin?: string) =>
     apiClient.post('/api/execute', { language, code, stdin }),
+};
+
+// Spotify API
+export const spotifyAPI = {
+  getAuthUrl: () =>
+    apiClient.get('/api/spotify/auth'),
+  
+  getTopTracks: (params?: { time_range?: string; limit?: number }) =>
+    apiClient.get('/api/spotify/top-tracks', { params }),
+  
+  getInsights: (data: { topTracks: any; recentTracks?: any; userProfile?: any }) =>
+    apiClient.post('/api/spotify/insights', data),
+  
+  getRecommendations: (params: { mood?: string; activity?: string; energyLevel?: number; focus?: string }) =>
+    apiClient.post('/api/spotify/recommendations', params),
+  
+  playTrack: (trackUris: string[], deviceId?: string) =>
+    apiClient.post('/api/spotify/playback', { action: 'play', trackUris, deviceId }),
+  
+  pausePlayback: () =>
+    apiClient.post('/api/spotify/playback', { action: 'pause' }),
+  
+  nextTrack: () =>
+    apiClient.post('/api/spotify/playback', { action: 'next' }),
+  
+  previousTrack: () =>
+    apiClient.post('/api/spotify/playback', { action: 'previous' }),
+  
+  seekTo: (position: number) =>
+    apiClient.post('/api/spotify/playback', { action: 'seek', position }),
+  
+  setVolume: (volume: number) =>
+    apiClient.post('/api/spotify/playback', { action: 'volume', position: volume }),
+  
+  getPlaybackState: () =>
+    apiClient.get('/api/spotify/playback'),
+  
+  search: (query: string, type: string = 'track', limit: number = 10) =>
+    apiClient.get('/api/spotify/search', { params: { q: query, type, limit } }),
 };

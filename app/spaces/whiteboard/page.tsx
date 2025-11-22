@@ -7,6 +7,7 @@ import { useFlowStore } from '@/lib/store';
 import { useFlowMonitoring } from '@/hooks/useFlowMonitoring';
 import FlowIndicator from '@/components/FlowIndicator';
 import InterventionOverlay from '@/components/InterventionOverlay';
+import AttentionTracker from '@/components/AttentionTracker';
 import {
   Play,
   Pencil,
@@ -185,6 +186,7 @@ export default function WhiteboardSpace() {
     <div className="min-h-screen bg-gray-100">
       <FlowIndicator />
       <InterventionOverlay />
+      <AttentionTracker isActive={isInFlow} />
 
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-3">
@@ -333,7 +335,7 @@ export default function WhiteboardSpace() {
               
               <MetricCard
                 label="Mouse Moves"
-                value={currentMetrics.mouseMovements}
+                value={currentMetrics.mouseActivity}
                 color="text-green-600"
               />
               

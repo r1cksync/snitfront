@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/Providers';
+import GlobalMusicButton from '@/components/GlobalMusicButton';
 
 export const metadata: Metadata = {
   title: 'Flow State Facilitator',
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <GlobalMusicButton />
+        </Providers>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { useFlowStore } from '@/lib/store';
 import { useFlowMonitoring } from '@/hooks/useFlowMonitoring';
 import FlowIndicator from '@/components/FlowIndicator';
 import InterventionOverlay from '@/components/InterventionOverlay';
+import AttentionTracker from '@/components/AttentionTracker';
 import { Play, Pause, RotateCcw, Timer, Coffee, Settings } from 'lucide-react';
 
 const PRESETS = [
@@ -169,6 +170,7 @@ export default function FocusTimerSpace() {
     <div className={`min-h-screen bg-gradient-to-br ${getModeColor()} transition-all duration-1000`}>
       <FlowIndicator />
       <InterventionOverlay />
+      <AttentionTracker isActive={isInFlow && mode === 'work'} />
       
       <audio ref={audioRef} src="/notification.mp3" />
 
@@ -313,7 +315,7 @@ export default function FocusTimerSpace() {
                   
                   <div className="pt-3 space-y-2">
                     <MetricRow label="Typing" value={`${Math.round(currentMetrics.typingSpeed)} keys/min`} />
-                    <MetricRow label="Mouse Activity" value={`${currentMetrics.mouseMovements}`} />
+                    <MetricRow label="Mouse Activity" value={`${currentMetrics.mouseActivity}`} />
                     <MetricRow label="Distractions" value={`${currentMetrics.tabSwitches}`} />
                   </div>
                 </div>
