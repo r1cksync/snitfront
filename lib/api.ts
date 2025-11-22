@@ -109,3 +109,9 @@ export const mlAPI = {
   predictFatigue: (metrics: any) =>
     apiClient.post('/api/ml', { operation: 'predict-fatigue', data: { metrics } }),
 };
+
+// Code Execution API
+export const executeAPI = {
+  run: (language: string, code: string, stdin?: string) =>
+    apiClient.post('/api/execute', { language, code, stdin }),
+};

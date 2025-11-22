@@ -103,7 +103,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Welcome Card */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg mb-8">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -112,6 +112,55 @@ export default function Dashboard() {
             <p className="text-gray-600 dark:text-gray-400">
               Ready to enter your flow state?
             </p>
+          </div>
+
+          {/* Focus Spaces */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Focus Spaces</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Link href="/spaces/code">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">💻</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Code Editor</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Write code with attention tracking</p>
+                </div>
+              </Link>
+              <Link href="/spaces/reading">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">📚</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Reading Space</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Read with comprehension tracking</p>
+                </div>
+              </Link>
+              <Link href="/spaces/writing">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">✍️</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Writing Space</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Write with AI assistance</p>
+                </div>
+              </Link>
+              <Link href="/spaces/timer">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">⏱️</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Focus Timer</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Pomodoro with flow detection</p>
+                </div>
+              </Link>
+              <Link href="/spaces/whiteboard">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">🎨</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Whiteboard</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Brainstorm and visualize</p>
+                </div>
+              </Link>
+              <Link href="/analytics">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">📊</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Analytics</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">View productivity insights</p>
+                </div>
+              </Link>
+            </div>
           </div>
 
           {/* Flow Control */}

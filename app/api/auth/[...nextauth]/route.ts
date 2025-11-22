@@ -1,6 +1,5 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -19,16 +18,31 @@ const handler = NextAuth({
 
         try {
           // Call backend API for authentication
-          const response = await axios.post(`${API_URL}/api/auth/signin`, {
-            email: credentials.email,
-            password: credentials.password,
+          const response = await fetch(`${API_URL}/api/auth/signin`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
           });
 
-          if (response.data.user) {
-            return response.data.user;
+          const data = await response.json();
+
+          if (response.ok && data.user) {
+            return {
+              id: data.user.id,
+              email: data.user.email,
+              name: data.user.name,
+              image: data.user.image,
+            };
           }
+          
           return null;
         } catch (error) {
+          console.error('Auth error:', error);
           return null;
         }
       },
