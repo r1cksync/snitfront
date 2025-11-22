@@ -162,9 +162,16 @@ export default function Dashboard() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">AI-powered focus music</p>
                 </div>
               </Link>
-              <Link href="/analytics">
+              <Link href="/spaces/code-analytics">
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
                   <div className="text-4xl mb-3">📊</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Code Analytics</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Deep coding insights & heatmaps</p>
+                </div>
+              </Link>
+              <Link href="/analytics">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">📈</div>
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Analytics</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">View productivity insights</p>
                 </div>

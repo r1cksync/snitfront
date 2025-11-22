@@ -8,9 +8,10 @@ import { useFlowMonitoring } from '@/hooks/useFlowMonitoring';
 import FlowIndicator from '@/components/FlowIndicator';
 import InterventionOverlay from '@/components/InterventionOverlay';
 import AttentionTracker from '@/components/AttentionTracker';
-import { Play, Save, Download, Settings, Maximize2, Code2, Terminal } from 'lucide-react';
+import { Play, Save, Download, Settings, Maximize2, Code2, Terminal, BarChart3 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
-import { executeAPI } from '@/lib/api';
+import { executeAPI, sessionsAPI } from '@/lib/api';
+import Link from 'next/link';
 
 const LANGUAGE_OPTIONS = [
   { value: 'javascript', label: 'JavaScript' },
@@ -483,7 +484,7 @@ export default function CodeEditorSpace() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { isInFlow, startFlowSession, endFlowSession, flowScore } = useFlowStore();
-  const { startMonitoring, stopMonitoring, currentMetrics, isMonitoring } = useFlowMonitoring();
+  const { startMonitoring, stopMonitoring, currentMetrics, isMonitoring, updateSessionData, sessionId } = useFlowMonitoring();
   
   const [code, setCode] = useState(CODE_SAMPLES['python']);
   const [language, setLanguage] = useState('python');
@@ -501,6 +502,7 @@ export default function CodeEditorSpace() {
   const [syntaxErrors, setSyntaxErrors] = useState(0);
   const [lastEditTime, setLastEditTime] = useState<number>(Date.now());
   const [editHistory, setEditHistory] = useState<number[]>([]);
+  const [charTimestamps, setCharTimestamps] = useState<number[]>([]);
   const [focusTime, setFocusTime] = useState(0);
   const [totalKeystrokes, setTotalKeystrokes] = useState(0);
   const [backspaceCount, setBackspaceCount] = useState(0);
@@ -519,7 +521,12 @@ export default function CodeEditorSpace() {
   useEffect(() => {
     // Load sample code when language changes
     setCode(CODE_SAMPLES[language] || CODE_SAMPLES['python']);
-  }, [language]);
+    
+    // Update session language if in active session
+    if (isInFlow && updateSessionData && sessionId) {
+      updateSessionData({ language });
+    }
+  }, [language, isInFlow, updateSessionData, sessionId]);
 
   useEffect(() => {
     // Calculate stats and complexity metrics
@@ -579,10 +586,6 @@ export default function CodeEditorSpace() {
     if (timeDiff > 0 && timeDiff < 1) {
       const recentEdits = editHistory.filter(time => now - time < 60000); // Last minute
       setKeystrokesPerMinute(recentEdits.length);
-      
-      const charsTyped = charCount;
-      const wordsTyped = charsTyped / 5; // Average word length
-      setTypingSpeed(Math.round(wordsTyped / (focusTime / 60 || 1)));
     }
     
     if (keystrokeTimerRef.current) {
@@ -598,14 +601,55 @@ export default function CodeEditorSpace() {
         clearTimeout(keystrokeTimerRef.current);
       }
     };
-  }, [code, lastEditTime, editHistory, charCount, focusTime]);
+  }, [code, lastEditTime, editHistory]);
+
+  // Calculate WPM based on 5-second window
+  useEffect(() => {
+    const now = Date.now();
+    const fiveSecondsAgo = now - 5000;
+    
+    // Filter timestamps to only last 5 seconds
+    const recentChars = charTimestamps.filter(timestamp => timestamp >= fiveSecondsAgo);
+    
+    // WPM = characters in last 5 seconds / 5
+    const wpm = Math.floor(recentChars.length / 5);
+    setTypingSpeed(wpm);
+    
+    // Clean up old timestamps (older than 5 seconds)
+    if (charTimestamps.length > 0) {
+      const cleanedTimestamps = charTimestamps.filter(timestamp => timestamp >= fiveSecondsAgo);
+      if (cleanedTimestamps.length !== charTimestamps.length) {
+        setCharTimestamps(cleanedTimestamps);
+      }
+    }
+  }, [charTimestamps]);
 
   const handleStartSession = async () => {
     startFlowSession();
     await startMonitoring();
+    
+    // Save initial language after a brief delay to ensure session is created
+    setTimeout(async () => {
+      if (updateSessionData) {
+        await updateSessionData({ language });
+      }
+    }, 500);
   };
 
-  const handleEndSession = () => {
+  const handleEndSession = async () => {
+    // Save final metrics before ending session
+    if (updateSessionData && sessionId) {
+      await updateSessionData({
+        language,
+        codeMetrics: {
+          linesOfCode: lineCount,
+          charactersTyped: charCount,
+          complexityScore: codeComplexity,
+          errorsFixed: backspaceCount,
+        },
+      });
+    }
+    
     stopMonitoring();
     endFlowSession();
   };
@@ -620,10 +664,18 @@ export default function CodeEditorSpace() {
       setLastEditTime(Date.now());
       setEditHistory(prev => [...prev.slice(-60), Date.now()]);
       
-      // Track specific key actions
+      // Track each character typed with timestamp for WPM calculation
       if (e.changes && e.changes.length > 0) {
         e.changes.forEach((change: any) => {
+          if (change.text && change.text.length > 0) {
+            // Add timestamp for each character typed
+            const now = Date.now();
+            const newTimestamps = Array(change.text.length).fill(now);
+            setCharTimestamps(prev => [...prev, ...newTimestamps]);
+          }
           if (change.text === '' && change.rangeLength > 0) {
+            // Backspace - remove timestamps
+            setCharTimestamps(prev => prev.slice(0, -change.rangeLength));
             setBackspaceCount(prev => prev + 1);
           }
         });
@@ -645,20 +697,27 @@ export default function CodeEditorSpace() {
       const result = response.data;
       
       let output = '';
+      let hasError = false;
       
       if (result.output) {
-        output += 'Output:\n' + result.output + '\n';
+        output += '✅ Output:\n' + result.output + '\n';
       }
       
       if (result.error) {
-        output += '\nErrors/Warnings:\n' + result.error;
+        hasError = true;
+        output += '\n❌ Error:\n' + result.error + '\n';
       }
       
       if (result.exitCode !== 0) {
-        output += '\n\nExit Code: ' + result.exitCode;
+        hasError = true;
+        output += '\n⚠️ Exit Code: ' + result.exitCode + ' (non-zero indicates error)\n';
       }
       
-      setOutput(output || 'Code executed successfully (no output)');
+      if (!output.trim()) {
+        output = '✅ Code executed successfully (no output)';
+      }
+      
+      setOutput(output);
     } catch (error: any) {
       console.error('Execution error:', error);
       
@@ -676,10 +735,10 @@ export default function CodeEditorSpace() {
             ).join(' '));
           };
           console.error = (...args: any[]) => {
-            logs.push('ERROR: ' + args.map(arg => String(arg)).join(' '));
+            logs.push('❌ ERROR: ' + args.map(arg => String(arg)).join(' '));
           };
           console.warn = (...args: any[]) => {
-            logs.push('WARNING: ' + args.map(arg => String(arg)).join(' '));
+            logs.push('⚠️ WARNING: ' + args.map(arg => String(arg)).join(' '));
           };
           
           const result = (function() {
@@ -692,18 +751,18 @@ export default function CodeEditorSpace() {
           
           let output = '';
           if (logs.length > 0) {
-            output = logs.join('\n') + '\n';
+            output = '✅ Output:\n' + logs.join('\n') + '\n';
           }
           if (result !== undefined) {
-            output += '\nReturned: ' + (typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result));
+            output += '\n📤 Returned: ' + (typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result));
           }
           
-          setOutput(output || 'Code executed successfully (no output)');
+          setOutput(output || '✅ Code executed successfully (no output)');
         } catch (evalError: any) {
-          setOutput('Error: ' + evalError.message + '\n\nStack trace:\n' + (evalError.stack || 'No stack trace available'));
+          setOutput('❌ Syntax Error:\n' + evalError.message + '\n\n📋 Stack Trace:\n' + (evalError.stack || 'No stack trace available'));
         }
       } else {
-        setOutput('Backend execution failed: ' + (error.response?.data?.error || error.message) + '\n\nBackend may be offline.');
+        setOutput('❌ Backend execution failed:\n' + (error.response?.data?.error || error.message) + '\n\n⚠️ Note: Backend may be offline. Try starting the backend server.');
       }
     }
   };
@@ -759,6 +818,15 @@ export default function CodeEditorSpace() {
                 </option>
               ))}
             </select>
+            
+            <Link
+              href="/spaces/code-analytics"
+              className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              title="View Code Analytics"
+            >
+              <BarChart3 size={18} />
+              Analytics
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">

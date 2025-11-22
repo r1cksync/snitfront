@@ -62,11 +62,21 @@ export function useFlowMonitoring() {
     try {
       const response = await sessionsAPI.create({
         startTime: new Date(),
+        qualityScore: 0,
+        focusScore: 0,
         metrics: {
           avgTypingSpeed: 0,
           tabSwitches: 0,
           mouseActivity: 0,
           fatigueLevel: 0,
+        },
+        language: 'javascript',
+        distractions: 0,
+        codeMetrics: {
+          linesOfCode: 0,
+          charactersTyped: 0,
+          complexityScore: 0,
+          errorsFixed: 0,
         },
       });
       
@@ -88,6 +98,8 @@ export function useFlowMonitoring() {
         endTime: new Date(),
         duration: Math.floor((Date.now() - (sessionStartTime?.getTime() || Date.now())) / 1000),
         qualityScore: flowScore,
+        focusScore: flowScore,
+        distractions: metrics.tabSwitches || 0,
         metrics,
       });
     } catch (error) {
@@ -234,5 +246,15 @@ export function useFlowMonitoring() {
     },
     currentMetrics: metricsRef.current,
     isMonitoring,
+    sessionId: sessionIdRef.current,
+    updateSessionData: async (data: any) => {
+      if (sessionIdRef.current) {
+        try {
+          await sessionsAPI.update(sessionIdRef.current, data);
+        } catch (error) {
+          console.error('Failed to update session data:', error);
+        }
+      }
+    },
   };
 }

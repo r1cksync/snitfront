@@ -134,8 +134,22 @@ export const spotifyAPI = {
   getInsights: (data: { topTracks: any; recentTracks?: any; userProfile?: any }) =>
     apiClient.post('/api/spotify/insights', data),
   
-  getRecommendations: (params: { mood?: string; activity?: string; energyLevel?: number; focus?: string }) =>
+  getRecommendations: (params: { 
+    mood?: string; 
+    activity?: string; 
+    energyLevel?: number; 
+    focus?: string;
+    userMessage?: string;
+    previousSongs?: string[];
+    playlistLength?: number;
+  }) =>
     apiClient.post('/api/spotify/recommendations', params),
+  
+  chatRefine: (data: { userMessage: string; currentPlaylist: any[]; conversationHistory?: any[]; playlistLength?: number }) =>
+    apiClient.post('/api/spotify/chat-refine', data),
+  
+  createPlaylist: (data: { name: string; description?: string; trackUris: string[] }) =>
+    apiClient.post('/api/spotify/create-playlist', data),
   
   playTrack: (trackUris: string[], deviceId?: string) =>
     apiClient.post('/api/spotify/playback', { action: 'play', trackUris, deviceId }),
