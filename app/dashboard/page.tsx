@@ -169,6 +169,27 @@ export default function Dashboard() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">Deep coding insights & heatmaps</p>
                 </div>
               </Link>
+              <Link href="/spaces/breathing">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">🌬️</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Breathing Space</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Guided breathing exercises</p>
+                </div>
+              </Link>
+              <Link href="/spaces/whiteboard-analytics">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">🎨</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Whiteboard Analytics</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Creativity & flow insights</p>
+                </div>
+              </Link>
+              <Link href="/spaces/chat">
+                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
+                  <div className="text-4xl mb-3">🧠</div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">AI Mental Health Chat</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Personal AI assistant with your data</p>
+                </div>
+              </Link>
               <Link href="/analytics">
                 <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow hover:shadow-lg transition-shadow cursor-pointer border-2 border-transparent hover:border-primary">
                   <div className="text-4xl mb-3">📈</div>

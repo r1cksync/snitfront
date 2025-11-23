@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Calendar, Phone, Briefcase, GraduationCap, Target, Clock, MapPin, Save, Edit2, X } from 'lucide-react';
+import Link from 'next/link';
+import { User, Mail, Calendar, Phone, Briefcase, GraduationCap, Target, Clock, MapPin, Save, Edit2, X, Bell } from 'lucide-react';
 import { authAPI } from '@/lib/api';
 
 const GOAL_OPTIONS = ['Improve Focus', 'Increase Productivity', 'Better Time Management', 'Reduce Distractions', 'Learn New Skills', 'Work-Life Balance'];
@@ -170,6 +171,31 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4">
+        {/* Quick Links */}
+        <div className="mb-6">
+          <Link
+            href="/settings/reminders"
+            className="block bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 hover:shadow-xl transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+                  <Bell className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-1">Health & Wellness Reminders</h3>
+                  <p className="text-white text-opacity-90 text-sm">
+                    Configure breathing exercises, eye rest, posture checks, and hydration reminders
+                  </p>
+                </div>
+              </div>
+              <div className="text-white text-opacity-70 group-hover:text-opacity-100 transition-all">
+                →
+              </div>
+            </div>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center justify-between">

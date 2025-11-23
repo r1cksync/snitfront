@@ -8,6 +8,7 @@ import { useFlowMonitoring } from '@/hooks/useFlowMonitoring';
 import FlowIndicator from '@/components/FlowIndicator';
 import InterventionOverlay from '@/components/InterventionOverlay';
 import AttentionTracker from '@/components/AttentionTracker';
+import { sessionsAPI } from '@/lib/api';
 import {
   Play,
   Pencil,
@@ -19,7 +20,9 @@ import {
   Download,
   Trash2,
   Palette,
+  BarChart3,
 } from 'lucide-react';
+import Link from 'next/link';
 
 type Tool = 'pen' | 'eraser' | 'rectangle' | 'circle' | 'line' | 'text';
 
@@ -38,6 +41,16 @@ export default function WhiteboardSpace() {
   const [lineWidth, setLineWidth] = useState(3);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [strokes, setStrokes] = useState(0);
+  
+  // Whiteboard-specific analytics
+  const [shapesDrawn, setShapesDrawn] = useState(0);
+  const [colorsUsedSet, setColorsUsedSet] = useState<Set<string>>(new Set(['#000000']));
+  const [eraserUses, setEraserUses] = useState(0);
+  const [toolSwitches, setToolSwitches] = useState(0);
+  const [strokeStartTime, setStrokeStartTime] = useState(0);
+  const [totalStrokeTime, setTotalStrokeTime] = useState(0);
+  const [pixelsDrawn, setPixelsDrawn] = useState(0);
+  const [lastTool, setLastTool] = useState<Tool>('pen');
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -64,11 +77,62 @@ export default function WhiteboardSpace() {
   const handleStartSession = async () => {
     startFlowSession();
     await startMonitoring();
+    
+    // Reset whiteboard metrics
+    setStrokes(0);
+    setShapesDrawn(0);
+    setColorsUsedSet(new Set([color]));
+    setEraserUses(0);
+    setToolSwitches(0);
+    setTotalStrokeTime(0);
+    setPixelsDrawn(0);
   };
 
-  const handleEndSession = () => {
+  const calculateCanvasCoverage = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return 0;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return 0;
+    
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    let nonWhitePixels = 0;
+    
+    for (let i = 0; i < pixels.length; i += 4) {
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+      
+      // Check if pixel is not white
+      if (r < 250 || g < 250 || b < 250) {
+        nonWhitePixels++;
+      }
+    }
+    
+    return (nonWhitePixels / (pixels.length / 4)) * 100;
+  };
+
+  const calculateCreativityScore = () => {
+    const colorDiversity = Math.min((colorsUsedSet.size / COLORS.length) * 40, 40);
+    const shapeComplexity = Math.min((shapesDrawn / 20) * 30, 30);
+    const canvasCoverage = calculateCanvasCoverage();
+    const coverageScore = Math.min(canvasCoverage, 30);
+    
+    return Math.round(colorDiversity + shapeComplexity + coverageScore);
+  };
+
+  const handleEndSession = async () => {
     stopMonitoring();
     endFlowSession();
+    
+    // Metrics will be saved through the flow store
+    console.log('Whiteboard session ended with metrics:', {
+      strokes,
+      shapesDrawn,
+      colorsUsed: colorsUsedSet.size,
+      creativityScore: calculateCreativityScore(),
+    });
   };
 
   const getMousePos = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -86,6 +150,7 @@ export default function WhiteboardSpace() {
     const pos = getMousePos(e);
     setIsDrawing(true);
     setStartPos(pos);
+    setStrokeStartTime(Date.now());
 
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
@@ -97,6 +162,11 @@ export default function WhiteboardSpace() {
     ctx.lineWidth = tool === 'eraser' ? lineWidth * 3 : lineWidth;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+    
+    // Track color usage
+    if (tool !== 'eraser' && !colorsUsedSet.has(color)) {
+      setColorsUsedSet(prev => new Set(prev).add(color));
+    }
   };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -122,6 +192,10 @@ export default function WhiteboardSpace() {
     if (!ctx) return;
 
     const pos = getMousePos(e);
+    
+    // Track stroke time
+    const strokeTime = (Date.now() - strokeStartTime) / 1000; // in seconds
+    setTotalStrokeTime(prev => prev + strokeTime);
 
     if (tool === 'rectangle') {
       ctx.strokeStyle = color;
@@ -132,6 +206,7 @@ export default function WhiteboardSpace() {
         pos.x - startPos.x,
         pos.y - startPos.y
       );
+      setShapesDrawn(prev => prev + 1);
     } else if (tool === 'circle') {
       const radius = Math.sqrt(
         Math.pow(pos.x - startPos.x, 2) + Math.pow(pos.y - startPos.y, 2)
@@ -141,6 +216,7 @@ export default function WhiteboardSpace() {
       ctx.beginPath();
       ctx.arc(startPos.x, startPos.y, radius, 0, 2 * Math.PI);
       ctx.stroke();
+      setShapesDrawn(prev => prev + 1);
     } else if (tool === 'line') {
       ctx.strokeStyle = color;
       ctx.lineWidth = lineWidth;
@@ -148,11 +224,24 @@ export default function WhiteboardSpace() {
       ctx.moveTo(startPos.x, startPos.y);
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
+      setShapesDrawn(prev => prev + 1);
+    }
+    
+    if (tool === 'eraser') {
+      setEraserUses(prev => prev + 1);
     }
 
     setIsDrawing(false);
     setStrokes(prev => prev + 1);
   };
+  
+  // Track tool switches
+  useEffect(() => {
+    if (isInFlow && tool !== lastTool) {
+      setToolSwitches(prev => prev + 1);
+      setLastTool(tool);
+    }
+  }, [tool, isInFlow, lastTool]);
 
   const clearCanvas = () => {
     const canvas = canvasRef.current;
@@ -161,7 +250,17 @@ export default function WhiteboardSpace() {
 
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    setStrokes(0);
+    
+    // Reset metrics
+    if (!isInFlow) {
+      setStrokes(0);
+      setShapesDrawn(0);
+      setColorsUsedSet(new Set([color]));
+      setEraserUses(0);
+      setToolSwitches(0);
+      setTotalStrokeTime(0);
+      setPixelsDrawn(0);
+    }
   };
 
   const downloadCanvas = () => {
@@ -194,9 +293,27 @@ export default function WhiteboardSpace() {
           <div className="flex items-center gap-4">
             <Pencil className="w-6 h-6 text-primary" />
             <h1 className="text-xl font-bold text-gray-900">Whiteboard</h1>
+            {isInFlow && (
+              <div className="flex items-center gap-3 ml-4">
+                <div className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+                  Creativity: {calculateCreativityScore()}/100
+                </div>
+                <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                  Colors: {colorsUsedSet.size}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
+            <Link href="/spaces/whiteboard-analytics">
+              <button
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <BarChart3 size={18} />
+                Analytics
+              </button>
+            </Link>
             {!isInFlow ? (
               <button
                 onClick={handleStartSession}
@@ -318,9 +435,9 @@ export default function WhiteboardSpace() {
         {/* Stats Sidebar */}
         {isInFlow && (
           <div className="w-64 bg-white border-l border-gray-200 p-4 overflow-auto">
-            <h3 className="text-gray-900 font-semibold mb-4">Flow Metrics</h3>
+            <h3 className="text-gray-900 font-semibold mb-4">Session Metrics</h3>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <MetricCard
                 label="Flow Score"
                 value={Math.round(flowScore)}
@@ -328,15 +445,39 @@ export default function WhiteboardSpace() {
               />
               
               <MetricCard
-                label="Strokes"
+                label="Creativity"
+                value={calculateCreativityScore()}
+                color="text-purple-600"
+              />
+              
+              <MetricCard
+                label="Total Strokes"
                 value={strokes}
                 color="text-blue-600"
               />
               
               <MetricCard
-                label="Mouse Moves"
-                value={currentMetrics.mouseActivity}
+                label="Shapes Drawn"
+                value={shapesDrawn}
                 color="text-green-600"
+              />
+              
+              <MetricCard
+                label="Colors Used"
+                value={colorsUsedSet.size}
+                color="text-pink-600"
+              />
+              
+              <MetricCard
+                label="Tool Switches"
+                value={toolSwitches}
+                color="text-orange-600"
+              />
+              
+              <MetricCard
+                label="Eraser Uses"
+                value={eraserUses}
+                color="text-gray-600"
               />
               
               <MetricCard
@@ -347,6 +488,19 @@ export default function WhiteboardSpace() {
             </div>
 
             <div className="mt-6 pt-6 border-t border-gray-200">
+              <h4 className="text-gray-700 text-sm font-semibold mb-3">Canvas Coverage</h4>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
+                  style={{ width: `${Math.min(calculateCanvasCoverage(), 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {Math.round(calculateCanvasCoverage())}% of canvas used
+              </p>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-gray-200">
               <h4 className="text-gray-700 text-sm font-semibold mb-3">Focus Level</h4>
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div

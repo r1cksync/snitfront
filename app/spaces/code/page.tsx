@@ -8,6 +8,7 @@ import { useFlowMonitoring } from '@/hooks/useFlowMonitoring';
 import FlowIndicator from '@/components/FlowIndicator';
 import InterventionOverlay from '@/components/InterventionOverlay';
 import AttentionTracker from '@/components/AttentionTracker';
+import ReminderManager from '@/components/ReminderManager';
 import { Play, Save, Download, Settings, Maximize2, Code2, Terminal, BarChart3 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { executeAPI, sessionsAPI } from '@/lib/api';
@@ -799,6 +800,7 @@ export default function CodeEditorSpace() {
       <FlowIndicator />
       <InterventionOverlay />
       <AttentionTracker isActive={isInFlow} />
+      <ReminderManager isActive={isInFlow} />
 
       {/* Header */}
       <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">

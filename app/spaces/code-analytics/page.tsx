@@ -55,6 +55,9 @@ export default function CodeAnalytics() {
   };
 
   const calculateMetrics = (sessions: any[]) => {
+    console.log('📊 Calculating metrics for sessions:', sessions.length);
+    console.log('Sample session data:', sessions[0]);
+    
     // Language breakdown
     const languageBreakdown: { [key: string]: number } = {};
     let totalCodingTime = 0;
@@ -67,30 +70,38 @@ export default function CodeAnalytics() {
     for (let i = 0; i < 24; i++) hourlyActivity[i] = 0;
 
     sessions.forEach((session: any) => {
-      // Language tracking
-      if (session.language) {
-        languageBreakdown[session.language] = (languageBreakdown[session.language] || 0) + 1;
-      }
+      // Language tracking - use language field or default to javascript
+      const lang = session.language || 'javascript';
+      languageBreakdown[lang] = (languageBreakdown[lang] || 0) + 1;
 
       // Time tracking
       if (session.duration) {
         totalCodingTime += session.duration;
       }
 
-      // Focus score
-      if (session.focusScore !== undefined) {
-        totalFocusScore += session.focusScore;
-        if (session.focusScore >= 80) deepWorkSessions++;
+      // Focus score - check both focusScore and qualityScore
+      const score = session.focusScore ?? session.qualityScore ?? 0;
+      if (score > 0) {
+        totalFocusScore += score;
+        if (score >= 80) deepWorkSessions++;
       }
 
-      // Distraction tracking
-      if (session.distractions) {
-        distractionEvents += session.distractions;
-      }
+      // Distraction tracking - use distractions or tabSwitches from metrics
+      const distractions = session.distractions ?? session.metrics?.tabSwitches ?? 0;
+      distractionEvents += distractions;
 
       // Peak hours
       const hour = new Date(session.createdAt || session.timestamp || session.startTime).getHours();
       hourlyActivity[hour]++;
+    });
+
+    console.log('📈 Calculated metrics:', {
+      totalSessions: sessions.length,
+      totalCodingTime,
+      avgFocusScore: sessions.length ? totalFocusScore / sessions.length : 0,
+      languageBreakdown,
+      distractionEvents,
+      deepWorkSessions,
     });
 
     // Calculate peak hours
@@ -108,7 +119,10 @@ export default function CodeAnalytics() {
         const sessionDate = new Date(s.createdAt || s.timestamp || s.startTime);
         return sessionDate.toDateString() === date.toDateString();
       });
-      const dayScore = daySessions.reduce((sum: number, s: any) => sum + (s.focusScore || 0), 0) / (daySessions.length || 1);
+      const dayScore = daySessions.reduce((sum: number, s: any) => {
+        const score = s.focusScore ?? s.qualityScore ?? 0;
+        return sum + score;
+      }, 0) / (daySessions.length || 1);
       productivityTrend.push(Math.round(dayScore));
     }
 
