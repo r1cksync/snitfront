@@ -46,6 +46,17 @@ export interface IUser extends Document {
   spotifyRefreshToken?: string;
   spotifyTokenExpiry?: Date;
   
+  // Report Preferences
+  emailReportsEnabled?: boolean;
+  emailReportsFrequency?: 'daily' | 'weekly' | 'monthly';
+  smsReportsEnabled?: boolean;
+  smsReportsFrequency?: 'daily' | 'weekly' | 'monthly';
+  whatsappReportsEnabled?: boolean;
+  whatsappReportsFrequency?: 'daily' | 'weekly' | 'monthly';
+  lastReportSent?: Date;
+  lastSMSSent?: Date;
+  lastWhatsAppSent?: Date;
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -111,6 +122,29 @@ const UserSchema = new Schema<IUser>(
     spotifyAccessToken: { type: String },
     spotifyRefreshToken: { type: String },
     spotifyTokenExpiry: { type: Date },
+    
+    // Report Preferences
+    emailReportsEnabled: { type: Boolean, default: false },
+    emailReportsFrequency: { 
+      type: String, 
+      enum: ['daily', 'weekly', 'monthly'], 
+      default: 'weekly' 
+    },
+    smsReportsEnabled: { type: Boolean, default: false },
+    smsReportsFrequency: { 
+      type: String, 
+      enum: ['daily', 'weekly', 'monthly'], 
+      default: 'weekly' 
+    },
+    whatsappReportsEnabled: { type: Boolean, default: false },
+    whatsappReportsFrequency: { 
+      type: String, 
+      enum: ['daily', 'weekly', 'monthly'], 
+      default: 'weekly' 
+    },
+    lastReportSent: { type: Date },
+    lastSMSSent: { type: Date },
+    lastWhatsAppSent: { type: Date },
   },
   {
     timestamps: true,
